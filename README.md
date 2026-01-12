@@ -2,6 +2,12 @@
 
 A privacy-focused web app that lets software engineers upload log files and chat with their logs using AI. Got an idea for an improvement? feel free to create a PR 😉
 
+
+[Test it out here](https://chatlog-six.vercel.app)
+
+
+Also see below on how to test a deploy and test a local version on your computer, in case you're not comfy with you logs leaving your server
+
 ## Key Features
 
 - **Local-first processing** - Logs are parsed entirely in your browser. The full log file never leaves your device.
