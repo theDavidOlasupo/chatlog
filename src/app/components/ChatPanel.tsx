@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LogEntry } from "../../lib/types";
 
 type Props = {
@@ -22,6 +22,8 @@ const ChatPanel = ({ entries, selectedEntries }: Props) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPrivacyTooltip, setShowPrivacyTooltip] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const hasData = entries.length > 0;
   const hasSelection = selectedEntries.length > 0;
@@ -33,23 +35,34 @@ const ChatPanel = ({ entries, selectedEntries }: Props) => {
   }, []);
 
   // Save API key to session storage
-  const handleApiKeyChange = (key: string) => {
+  const handleApiKeyChange = useCallback((key: string) => {
     setApiKey(key);
     if (key) {
       sessionStorage.setItem("anthropic_api_key", key);
     } else {
       sessionStorage.removeItem("anthropic_api_key");
     }
-  };
+  }, []);
 
-  // Estimate token count for selected entries
-  const selectedText = selectedEntries.map((e) => e.text).join("\n");
-  const estimatedTokens = Math.ceil(selectedText.length / CHARS_PER_TOKEN);
-  const isOverLimit = estimatedTokens > MAX_TOKENS;
+  // Estimate token count for selected entries (memoized)
+  const { selectedText, estimatedTokens, isOverLimit } = useMemo(() => {
+    const text = selectedEntries.map((e) => e.text).join("\n");
+    const tokens = Math.ceil(text.length / CHARS_PER_TOKEN);
+    return {
+      selectedText: text,
+      estimatedTokens: tokens,
+      isOverLimit: tokens > MAX_TOKENS,
+    };
+  }, [selectedEntries]);
 
   const canSend = hasSelection && apiKey.trim() && question.trim() && !isLoading && !isOverLimit;
 
-  const handleSubmit = async (e: FormEvent) => {
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
     if (!canSend) return;
 
@@ -81,6 +94,7 @@ const ChatPanel = ({ entries, selectedEntries }: Props) => {
 
       const decoder = new TextDecoder();
       let assistantMessage = "";
+      let updateCounter = 0;
 
       // Add empty assistant message that we'll update
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
@@ -91,14 +105,24 @@ const ChatPanel = ({ entries, selectedEntries }: Props) => {
 
         const chunk = decoder.decode(value, { stream: true });
         assistantMessage += chunk;
+        updateCounter++;
 
-        // Update the last message with accumulated content
-        setMessages((prev) => {
-          const updated = [...prev];
-          updated[updated.length - 1] = { role: "assistant", content: assistantMessage };
-          return updated;
-        });
+        // Batch updates every 3 chunks for better performance
+        if (updateCounter % 3 === 0 || done) {
+          setMessages((prev) => {
+            const updated = [...prev];
+            updated[updated.length - 1] = { role: "assistant", content: assistantMessage };
+            return updated;
+          });
+        }
       }
+
+      // Final update to ensure all content is displayed
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { role: "assistant", content: assistantMessage };
+        return updated;
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
       // Remove the empty assistant message if there was an error
@@ -111,10 +135,10 @@ const ChatPanel = ({ entries, selectedEntries }: Props) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [canSend, question, apiKey, selectedEntries]);
 
   return (
-    <section className="flex h-full min-h-[500px] flex-1 flex-col rounded-xl border border-neutral-200 bg-white p-4">
+    <section className="flex h-full w-full flex-col rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white shadow-sm p-4">
       <h2 className="text-lg font-semibold text-neutral-900">Chat</h2>
       <p className="mt-1 text-sm text-neutral-600">
         Ask questions about your selected log entries
@@ -134,9 +158,25 @@ const ChatPanel = ({ entries, selectedEntries }: Props) => {
         />
         <p className="mt-1 text-xs text-neutral-500">
           Your key is stored in browser session only.{" "}
-          <a href="#" className="text-blue-600 hover:underline">
+          <button
+            type="button"
+            onMouseEnter={() => setShowPrivacyTooltip(true)}
+            onMouseLeave={() => setShowPrivacyTooltip(false)}
+            className="relative text-blue-600 hover:underline"
+          >
             Privacy info
-          </a>
+            {showPrivacyTooltip && (
+              <div className="absolute right-0 top-full mt-1 w-64 rounded-lg border border-blue-200 bg-white p-3 shadow-lg text-xs text-neutral-700 z-50">
+                <p className="font-semibold text-neutral-900 mb-2">Privacy & Security</p>
+                <ul className="space-y-1">
+                  <li>✓ Log files parsed in browser only</li>
+                  <li>✓ API key in session storage only</li>
+                  <li>✓ Only selected entries sent to AI</li>
+                  <li>✓ Server doesn't store any data</li>
+                </ul>
+              </div>
+            )}
+          </button>
         </p>
       </div>
 
@@ -205,6 +245,7 @@ const ChatPanel = ({ entries, selectedEntries }: Props) => {
                 Thinking...
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center">

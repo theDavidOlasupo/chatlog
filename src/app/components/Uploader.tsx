@@ -52,7 +52,7 @@ const Uploader = ({ onFile, isParsing, progress, error, stats }: Props) => {
   };
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-4">
+    <section className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white shadow-sm p-4">
       <div
         onClick={handleClick}
         onDragOver={handleDragOver}
@@ -122,10 +122,7 @@ const Uploader = ({ onFile, isParsing, progress, error, stats }: Props) => {
         <div className="mt-3 flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-3 py-2">
           <div className="flex items-center gap-3 text-xs">
             <span className="font-medium text-green-800">
-              {stats.entries.toLocaleString()} entries
-            </span>
-            <span className="text-green-600">
-              {stats.lines.toLocaleString()} lines
+              {stats.entries.toLocaleString()} log entries
             </span>
           </div>
           <span className="text-xs text-green-600">

@@ -134,15 +134,28 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-neutral-50">
-      <header className="border-b border-neutral-200 bg-white px-6 py-4">
-        <h1 className="text-xl font-semibold text-neutral-900">Chatlog</h1>
+      <header className="border-b border-blue-200 bg-gradient-to-r from-blue-50 to-white px-6 py-4">
+        <h1 className="text-xl font-semibold">
+          <span className="text-blue-600">C</span>
+          <span className="text-red-600">h</span>
+          <span className="text-yellow-500">a</span>
+          <span className="text-blue-600">t</span>
+          <span className="text-green-600">l</span>
+          <span className="text-red-600">o</span>
+          <span className="text-blue-600">g</span>
+        </h1>
+        <p className="text-sm font-semibold text-neutral-600">
+          Explore log files by severity, search logs, get log insights via AI chat.
+        </p>
         <p className="text-sm text-neutral-600">
-          Upload log files and chat with your logs to get AI insights.
+         <a href="https://github.com/theDavidOlasupo/chatlog/blob/main/README.md" className="hover:underline" target="_blank" rel="noopener noreferrer">
+           View <span className="font-semibold text-blue-600">Github repo</span> - see how to contribute features or use locally
+         </a>
         </p>
       </header>
 
-      <div className="mx-auto max-w-[1600px] p-6">
-        <div className="relative flex gap-6">
+      <div className="mx-auto max-w-[1600px] h-[calc(100vh-100px)] p-3">
+        <div className="relative flex gap-6 h-full">
           {/* Main panel: Viewer */}
           <div className={`flex-1 transition-all duration-300 ${isSidebarOpen ? "lg:mr-[400px]" : ""}`}>
             <Viewer
@@ -194,11 +207,11 @@ export default function Home() {
           {/* Right panel: Upload + Chat (sidebar) */}
           <div
             ref={sidebarRef}
-            className={`fixed right-0 top-[73px] bottom-0 w-[400px] overflow-y-auto border-l border-neutral-200 bg-neutral-50 p-6 transition-transform duration-300 ${
+            className={`fixed right-0 top-[73px] bottom-0 w-[400px] overflow-y-auto border-l border-neutral-200 bg-neutral-50 p-3 transition-transform duration-300 ${
               isSidebarOpen ? "translate-x-0" : "translate-x-full"
             }`}
           >
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6 h-full">
               <div ref={uploadRef}>
                 <Uploader
                   onFile={handleFile}
@@ -208,7 +221,7 @@ export default function Home() {
                   stats={stats}
                 />
               </div>
-              <div ref={chatRef}>
+              <div ref={chatRef} className="flex-1 flex">
                 <ChatPanel
                   entries={entries}
                   selectedEntries={selectedEntryObjects}

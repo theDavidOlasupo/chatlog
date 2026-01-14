@@ -19,11 +19,11 @@ const SEVERITY_COLORS: Record<string, string> = {
   WARN: "text-yellow-600",
   WARNING: "text-yellow-600",
   INFO: "text-blue-600",
-  DEBUG: "text-neutral-500",
-  TRACE: "text-neutral-400",
+  DEBUG: "text-purple-500",
+  TRACE: "text-neutral-500",
 };
 
-const DEFAULT_LIMIT = 150;
+const DEFAULT_LIMIT = 200;
 
 const Viewer = ({
   entries,
@@ -96,7 +96,7 @@ const Viewer = ({
   };
 
   return (
-    <section className="flex flex-1 flex-col rounded-xl border border-neutral-200 bg-white p-4">
+    <section className="flex h-[calc(100vh-100px)] flex-col rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white shadow-sm p-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-base font-semibold text-neutral-900">Log Viewer</h2>
         <div className="flex items-center gap-2">
@@ -106,7 +106,8 @@ const Viewer = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             disabled={!hasData}
-            className={`w-32 rounded border px-2 py-1 text-xs ${
+            autoComplete="off"
+            className={`w-64 rounded border px-2 py-1 text-xs ${
               hasData
                 ? "border-neutral-300 bg-white text-neutral-900 placeholder-neutral-400"
                 : "border-neutral-200 bg-neutral-50 text-neutral-400"
@@ -159,7 +160,7 @@ const Viewer = ({
         </div>
       )}
 
-      <div className="mt-2 flex min-h-[400px] max-h-[calc(100vh-220px)] flex-col overflow-y-auto rounded border border-neutral-200 bg-neutral-900 font-mono text-xs">
+      <div className="mt-2 flex flex-1 flex-col overflow-y-auto rounded border border-neutral-200 bg-neutral-900 font-mono text-xs">
         {hasData ? (
           filteredEntries.length > 0 ? (
             <div className="flex flex-col">
